@@ -1,0 +1,130 @@
+函数 search2()是一个产生器。第一次调用此函数，它运行到 yield 语句然后停下来。
+调用程序获得第一个词，没有任何必要的处理。一旦调用程序对另一个词做好准备，函数会
+从停下来的地方继续执行，直到再次遇到 yield 语句。这种方法通常更有效，因为函数只产
+生调用程序需要的数据，并不需要分配额外的内存来存储输出
+def search1(substring, words):
+    result = []
+    for word in words:
+    if substring in word:
+        result.append(word)
+    return result
+def search2(substring, words):
+    for word in words:
+        if substring in word:
+            yield word
+print "search1:"
+for item in search1('zz', nltk.corpus.brown.words()):
+    print item
+print "search2:"
+for item in search2('zz', nltk.corpus.brown.words()):
+    print item
+
+产生一个词链表的所有排列。为了强制 permutations()函数产生所有它的输出，我们将它包装在 list()调用中
+def permutations(seq):
+     if len(seq) <= 1:
+        yield seq
+     else:
+        for perm in permutations(seq[1:]):
+            for i in range(len(perm)+1):
+                yield perm[:i] + seq[0:1] + perm[i:]
+list(permutations(['police', 'fish', 'buffalo']))
+
+定义一个函数 is_content_word()开始，它检查一个词是否来自一个开放的实词类。使用此函数作为 offilter()的第一个参数，
+它对作为它的第二个参数的序列中的每个项目运用该函数，只保留该函数返回 True 的项目
+def is_content_word(word):
+    return word.lower() not in ['a', 'of', 'the', 'and', 'will', ',', '.']
+sent = ['Take', 'care', 'of', 'the', 'sense', ',', 'and', 'the','sounds', 'will', 'take', 'care', 'of', 'themselves', '.']
+filter(is_content_word, sent)  # same as
+[w for w in sent if is_content_word(w)]  # same as
+高阶函数是 map()
+lengths = map(len, nltk.corpus.brown.sents(categories='news'))   # same as
+sum(lengths) / len
+lengths = [len(w) for w in nltk.corpus.brown.sents(categories='news'))] # same as
+
+计数每个词中的元音的数量
+map(lambda w: len(filter(lambda c: c.lower() in "aeiou", w)), sent)
+[len([c for c in w if c.lower() in "aeiou"]) for w in sent]
+参数的命名
+def repeat(msg='<empty>', num=1):
+     return msg * num
+repeat(num=3)
+'<empty><empty><empty>'
+repeat(msg='Alice')
+'Alice'
+repeat(num=5, msg='Alice')
+'AliceAliceAliceAliceAlice'
+
+假设我们有 n 个词，要计算出它们结合在一起有多少不同的方式能组成一个词序
+列。如果我们只有一个词（n=1），只是一种方式组成一个序列。如果我们有 2 个词，就有 2
+种方式将它们组成一个序列。3 个词有 6 种可能性。一般的，n 个词有 n × n-1 × … ×
+2 × 1 种方式（即 n 的阶乘）。我们可以将这些编写成如下代码：
+def factorial1(n):
+    result = 1
+    for i in range(n):
+        result *= (i+1)
+    return result
+我们简单的将 n-1 个词的解决方案数乘以 n 的值。我们还需要基础案例，也就是说，如果我们有一个词，只有一个顺序。
+我们可以将这些编写成如下代码：
+def factorial2(n):
+    if n == 1:
+        return 1
+    else:
+        return n * factorial2(n-1)
+
+构建一个字母查找树：一个递归函数建立一个嵌套的字典结构，每一级嵌套包含给定前缀的所有单词，子查找树含有所有可能的后续词
+def insert(trie, key, value):
+    if key:
+        first, rest = key[0], key[1:]
+        if first not in trie:
+            trie[first] = {}
+        insert(trie[first], rest, value)
+    else:
+        trie['value'] = value
+
+trie = nltk.defaultdict(dict)
+insert(trie, 'chat', 'cat')
+insert(trie, 'chien', 'dog')
+insert(trie, 'chair', 'flesh')
+insert(trie, 'chic', 'stylish')
+trie = dict(trie) # for nicer printing
+trie['c']['h']['a']['t']['value']
+'cat'
+pprint.pprint(trie)
+{'c': {'h': {'a': {'t': {'value': 'cat'}},
+{'i': { 'r': {'value': 'flesh'}}},
+'i': {'e': {'n': {'value': 'dog'}}}
+{'c': {'value': 'stylish'}}}}}
+
+一个简单的全文检索系统
+def raw(file):
+    contents = open(file).read()
+    contents = re.sub(r'<.*?>', ' ', contents)
+    contents = re.sub('\s+', ' ', contents)
+    return contents
+def snippet(doc, term): # buggy
+    text = ' '*30 + raw(doc) + ' '*30
+    pos = text.index(term)
+    return text[pos-30:pos+30]
+print "Building Index..."
+files = nltk.corpus.movie_reviews.abspaths()
+idx = nltk.Index((w, f) for f in files for w in raw(f).split())
+query = ''
+while query != "quit":
+query = raw_input("query> ")
+if query in idx:
+    for doc in idx[query]:
+        print snippet(doc, query)
+else:
+    print "Not found"
+
+# 预处理已标注的语料库数据，将所有的词和标注转换成整数
+def preprocess(tagged_corpus):
+    words = set()
+    tags = set()
+    for sent in tagged_corpus:
+        for word, tag in sent:
+            words.add(word)
+            tags.add(tag)
+    wm = dict((w,i) for (i,w) in enumerate(words))
+    tm = dict((t,i) for (i,t) in enumerate(tags))
+    return [[(wm[w], tm[t]) for (w,t) in sent] for sent in tagged_corpus]

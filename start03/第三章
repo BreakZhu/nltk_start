@@ -1,0 +1,315 @@
+一、电子书
+from urllib import urlopen
+url = "http://www.gutenberg.org/files/2554/2554.txt"
+raw = urlopen(url).read()
+type(raw)
+tokens = nltk.word_tokenize(raw) # 分词
+type(tokens)
+text = nltk.Text(tokens)
+方法 find()和 rfind()（反向的 find）帮助我们得到字符串切片需要用到的正确的索引
+值
+二、处理的 HTML
+url = "http://news.bbc.co.uk/2/hi/health/2284783.stm"
+html = urlopen(url).read()
+html[:60]
+从 HTML 中提取文本是极其常见的任务，NLTK 提供了一个辅助函数 nltk.clean_ht
+ml()将 HTML 字符串作为参数，返回原始文本。然后我们可以对原始文本进行分词，获得
+raw = nltk.clean_html(html)
+tokens = nltk.word_tokenize(raw)
+tokens = tokens[96:399]
+text = nltk.Text(tokens)
+text.concordance('gene')
+三、处理搜索引擎的结果
+
+四、处理 RSS 订阅
+import feedparser
+llog = feedparser.parse("http://languagelog.ldc.upenn.edu/nll/?feed=atom")
+llog['feed']['title']
+post = llog.entries[2]
+post.title
+content = post.content[0].value
+content[:70]
+nltk.word_tokenize(nltk.html_clean(content))
+
+五、字符串处理
+s.find(t) 字符串 s 中包含 t 的第一个索引（没找到返回-1）
+s.rfind(t) 字符串 s 中包含 t 的最后一个索引（没找到返回-1）
+s.index(t) 与 s.find(t)功能类似，但没找到时引起 ValueError
+s.rindex(t) 与 s.rfind(t)功能类似，但没找到时引起 ValueError
+s.join(text) 连接字符串 s 与 text 中的词汇
+s.split(t) 在所有找到 t 的位置将 s 分割成链表（默认为空白符）
+s.splitlines() 将 s 按行分割成字符串链表
+s.lower() 将字符串 s 小写
+s.upper() 将字符串 s 大写
+s.titlecase() 将字符串 s 首字母大写
+s.strip() 返回一个没有首尾空白字符的 s 的拷贝
+s.replace(t, u) 用 u 替换 s 中的 t
+
+六、从文件中提取已编码文本
+path = nltk.data.find('corpora/unicode_samples/polish-lat2.txt')
+Python 的 codecs 模块提供了将编码数据读入为 Unicode 字符串和将 Unicode 字符串以
+编码形式写出的函数。codecs.open()函数有一个 encoding 参数来指定被读取或写入的
+文件的编码。让我们导入 codecs 模块，以“latin2”为 encoding 参数，调用它以 Unico
+de 打开我们的波兰语文件。
+import codecs
+f = codecs.open(path, encoding='latin2')
+
+使用特定的本地编码字符
+你可能希望能够在一个 Python 文件中使用你
+的字符串输入及编辑的标准方法。为了做到这一点，你需要在你的文件的第一行或第二行中
+包含字符串：'# -*- coding: <coding>-*-' 。请注意，<coding>是一个像'latin-1',104 'big5'或者'utf-8'的字符串
+
+import re
+wordlist = [w for w in nltk.corpus.words.words('en') if w.islower()]
+[w for w in wordlist if re.search('ed$', w)]
+[w for w in wordlist if re.search('^..j..t..$', w)]
+符号“?”表示前面的字符是可选的。因此«^e-?mail $»将匹配 email 和 e-mai
+l。我们可以使用 sum(1 for w in text if re.search('^e-? mail$', w))计数一个文本
+中这个词（任一拼写形式）出现的总次数。
+chat_words = sorted(set(w for w in nltk.corpus.nps_chat.words()))
+[w for w in chat_words if re.search('^m+i+n+e+$', w)] # 连续出现的mine
+wsj = sorted(set(nltk.corpus.treebank.words()))
+[w for w in wsj if re.search('^[0-9]+\.[0-9]+$', w)] #出现的小数
+[w for w in wsj if re.search('^[A-Z]+\$$', w)]  # 出现的大写字母和美元符号
+[w for w in wsj if re.search('^[0-9]{4}$', w)]  # 出现的四位连续数字
+[w for w in wsj if re.search('^[0-9]+-[a-z]{3,5}$', w)]  # 数字- （3到5）的字母
+[w for w in wsj if re.search('^[a-z]{5,}-[a-z]{2,3}-[a-z]{,6}$', w)] # 5个及以上字母-2到3个字母-少于6个字母
+[w for w in wsj if re.search('(ed|ing)$', w)]   # ed 和 ing 结尾的词
+
+· 通配符，匹配所有字符
+^abc 匹配以 abc 开始的字符串
+abc$ 匹配以 abc 结尾的字符串
+[abc] 匹配字符集合中的一个
+[A-Z0-9] 匹配字符一个范围
+ed|ing|s 匹配指定的一个字符串（析取）
+* 前面的项目零个或多个，如 a*, [a-z]* (也叫 Kleene 闭包)
++ 前面的项目 1 个或多个，如 a+, [a-z]+
+? 前面的项目零个或 1 个（即：可选）如：a?, [a-z]?
+{n} 重复 n 次，n 为非负整数
+{n,} 至少重复 n 次
+{,n} 重复不多于 n 次
+{m,n} 至少重复 m 次不多于 n 次
+a(b|c)+ 括号表示操作符的范围
+让我们找出一个词中的元音，再计数它们：
+word = 'supercalifragilisticexpialidocious'
+re.findall(r'[aeiou]', word)
+len(re.findall(r'[aeiou]', word))
+些文本中的两个或两个以上的元音序列，并确定它们的相对频率
+wsj = sorted(set(nltk.corpus.treebank.words()))
+fd = nltk.FreqDist(vs for word in wsj for vs in re.findall(r'[aeiou]{2,}', word))
+
+regexp = r'^[AEIOUaeiou]+|[AEIOUaeiou]+$|[^AEIOUaeiou]'
+def compress(word):
+     pieces = re.findall(regexp, word)
+     return ''.join(pieces)
+english_udhr = nltk.corpus.udhr.words('English-Latin1')
+print nltk.tokenwrap(compress(w) for w in english_udhr[:75])
+
+我们将从罗托卡特语词汇中提取所有辅音-元音序列，如 ka 和 si。因为每部分都是成对的，它可以被用来初始化
+一个条件频率分布。然后我们为每对的频率列表
+rotokas_words = nltk.corpus.toolbox.words('rotokas.dic')
+cvs = [cv for w in rotokas_words for cv in re.findall(r'[ptksvr][aeiou]', w)]
+cfd = nltk.ConditionalFreqDist(cvs)
+cfd.tabulate()
+
+cv_word_pairs = [(cv, w) for w in rotokas_words
+for cv in re.findall(r'[ptksvr][aeiou]', w)]
+cv_index = nltk.Index(cv_word_pairs)
+cv_index['su']
+
+这里的是一种简单直观的方法，直接去掉任何看起来像一个后缀的字符
+def stem(word):
+... for suffix in ['ing', 'ly', 'ed', 'ious', 'ies', 'ive', 'es', 's', 'ment']:
+... if word.endswith(suffix):
+... return word[:-len(suffix)]
+... return word
+re.findall(r'^.*(ing|ly|ed|ious|ies|ive|es|s|ment)$', 'processing')  # 返回后缀 [ing]
+re.findall(r'^.*(?:ing|ly|ed|ious|ies|ive|es|s|ment)$', 'processing') # 返回整个词[processing]
+re.findall(r'^(.*)(ing|ly|ed|ious|ies|ive|es|s|ment)$', 'processing') #  返回 [process,ing]
+
+re.findall(r'^(.*)(ing|ly|ed|ious|ies|ive|es|s|ment)$', 'processes')  # [processe,s]
+但是正则表达式错误地找到了后缀“-s”，而不是后缀“-es”。这表明另一个微妙之处：“*”
+操作符是“贪婪的”，所以表达式的“.*”部分试图尽可能多的匹配输入的字符串。如果我
+们使用“非贪婪”版本的“*”操作符，写成“*?”，我们就得到我们想要的
+re.findall(r'^(.*?)(ing|ly|ed|ious|ies|ive|es|s|ment)$', 'processes')
+至可以通过使第二个括号中的内容变成可选，来得到空后缀
+re.findall(r'^(.*?)(ing|ly|ed|ious|ies|ive|es|s|ment)?$', 'language')
+
+这种方法仍然有许多问题，我们将继续定义一个函数来获取
+词干，并将它应用到整个文本：
+def stem(word):
+     regexp = r'^(.*?)(ing|ly|ed|ious|ies|ive|es|s|ment)?$'
+     stem, suffix = re.findall(regexp, word)[0]
+     return stem
+     raw = """DENNIS: Listen, strange women lying in ponds distributing swords
+            is no basis for a system of government. Supreme executive power derives from
+            a mandate from the masses, not from some farcical aquatic ceremony.
+            """
+tokens = nltk.word_tokenize(raw)
+[stem(t) for t in tokens]
+我们的正则表达式将“ponds”的“s”删除，但也将“basis”的“is”删除。它
+产生一些非词（未被确认、收录的词）如 distribut 与 deriv，但这些都是在一些应用中可接受的词干
+搜索已分词文本
+“<a> <man>”找出文本中所有“a man”的实例。尖括号用于标记标识符
+的边界，尖括号之间的所有空白都被忽略（这只对 NLTK 中的 findall()方法处理文本有效）。
+在下面的例子中，我们使用<.*>，它将匹配所有单个标识符，将它括在括号里，于是只
+匹配词（例如：monied）而不匹配短语（例如：a monied man）。第二个例子找出以词“br
+o”结尾的三个词组成的短语。最后一个例子找出以字母“l”开始的三个或更多词组成的
+序列
+from nltk.corpus import gutenberg, nps_chat
+moby = nltk.Text(gutenberg.words('melville-moby_dick.txt'))
+moby.findall(r"<a> (<.*>) <man>")
+
+chat = nltk.Text(nps_chat.words())
+chat.findall(r"<.*> <.*> <bro>")
+
+chat.findall(r"<l.*>{3,}")
+
+在大型文本语料库中搜索“x and other ys”形式的表达式能让我们发现上位词
+from nltk.corpus import brown
+hobbies_learned = nltk.Text(brown.words(categories=['hobbies', 'learned']))
+hobbies_learned.findall(r"<\w*> <and> <other> <\w*s>")
+
+词干提取器
+porter = nltk.PorterStemmer()
+lancaster = nltk.LancasterStemmer()
+[porter.stem(t) for t in tokens]
+[lancaster.stem(t) for t in tokens]
+
+使用词干提取器索引文本。
+class IndexedText(object):
+    def __init__(self, stemmer, text):
+        self._text = text
+        self._stemmer = stemmer
+        self._index = nltk.Index((self._stem(word), i) for (i, word) in enumerate(text))
+
+    def concordance(self, word, width=40):
+        key = self._stem(word)
+        wc = width/4 # words of context
+        for i in self._index[key]:
+            lcontext = ' '.join(self._text[i-wc:i])
+            rcontext = ' '.join(self._text[i:i+wc])
+            ldisplay = '%*s' % (width, lcontext[-width:])
+            rdisplay = '%-*s' % (width, rcontext[:width])
+            print ldisplay, rdisplay
+
+    def _stem(self, word):
+        return self._stemmer.stem(word).lower()
+
+porter = nltk.PorterStemmer()
+grail = nltk.corpus.webtext.words('grail.txt')
+text = IndexedText(porter, grail)
+text.concordance('lie')
+
+词形并归
+WordNet 词形归并器删除词缀产生的词都是在它的字典中的词。这个额外的检查过程使
+词形归并器比刚才提到的词干提取器要慢。请注意，它并没有处理“lying”，但它将“wom
+en”转换为“woman”
+wnl = nltk.WordNetLemmatizer()
+[wnl.lemmatize(t) for t in tokens]
+记住在正则表达式前加字母“r”，它告诉 Python 解释器按照字面表示对待字符串而不去处理正则表达式中包含的反斜杠字符
+
+一下列出了我们已经在本节中看到的正则表达式字符类符号，以及一些其他有用的符号
+\b 词边界（零宽度）
+\d 任一十进制数字（相当于[0-9]）
+\D 任何非数字字符（等价于[^ 0-9]）
+\s 任何空白字符（相当于[ \t\n\r\f\v]）
+\S 任何非空白字符（相当于[^ \t\n\r\f\v]）
+\w 任何字母数字字符（相当于[a-zA-Z0-9_]）
+\W 任何非字母数字字符（相当于[^a-zA-Z0-9_]）
+\t 制表符
+\n 换行符
+通过正则分词
+nltk.regexp_tokenize()与 re.findall()类似（我们一直在使用它进行分词）。然
+而，nltk.regexp_tokenize()分词效率更高，且不需要特殊处理括号。为了增强可读性，
+我们将正则表达式分几行写，每行添加一个注释。特别的“(?x)”“verbose 标志”告诉 Pyt
+hon 去掉嵌入的空白字符和注释
+text = 'That U.S.A. poster-print costs $12.40...'
+pattern = r'''(?x)      # set flag to allow verbose regexps
+... ([A-Z]\.)+          # abbreviations, e.g. U.S.A.
+... | \w+(-\w+)*        # words with optional internal hyphens
+... | \$?\d+(\.\d+)?%?  # currency and percentages, e.g. $12.40, 82%
+... | \.\.\.            # ellipsis
+... | [][.,;"'?():-_`]  # these are separate tokens
+... '''
+nltk.regexp_tokenize(text, pattern)
+['That', 'U.S.A.', 'poster-print', 'costs', '$12.40', '...']
+从分词表示字符串 seg1 和 seg2 中重建文本分词。seg1 和 seg2 表示假设的
+一些儿童讲话的初始和最终分词。函数 segment()可以使用它们重现分词的文本。
+def segment(text, segs):
+    words = []
+    last = 0
+    for i in range(len(segs)):
+        if segs[i] == '1':
+        words.append(text[last:i+1])
+        last = i+1
+        words.append(text[last:])
+    return words
+text = "doyouseethekittyseethedoggydoyoulikethekittylikethedoggy"
+seg1 = "0000000000000001000000000010000000000000000100000000000"
+seg2 = "0100100100100001001001000010100100010010000100010010000"
+segment(text, seg1)
+
+给定一个假设的源文本的分词（左），推导出一个词典和推导表，它能让源文本重构，然后合计每个词项（包括边界标志）
+与推导表的字符数，作为分词质量的得分；得分值越小表明分词越好。实现这个目标函数是很简单的，如例子 3-3 所示。
+例 3-3. 计算存储词典和重构源文本的成本。
+def evaluate(text, segs):
+    words = segment(text, segs)
+    text_size = len(words)
+    lexicon_size = len(' '.join(list(set(words))))
+    return text_size + lexicon_size
+使用模拟退火算法的非确定性搜索：一开始仅搜索短语分词；随机扰动 0 和 1，它们与“温度”成比例；每次迭代温度都会降低，扰动边界会减少
+from random import randint
+def flip(segs, pos):
+    return segs[:pos] + str(1-int(segs[pos])) + segs[pos+1:]
+def flip_n(segs, n):
+    for i in range(n):
+        segs = flip(segs, randint(0,len(segs)-1))
+    return segs
+def anneal(text, segs, iterations, cooling_rate):
+    temperature = float(len(segs))
+    while temperature > 0.5:
+        best_segs, best = segs, evaluate(text, segs)
+        for i in range(iterations):
+            guess = flip_n(segs, int(round(temperature)))
+            score = evaluate(text, guess)
+            if score < best:
+                best, best_segs = score, guess
+        score, segs = best, best_segs
+        temperature = temperature / cooling_rate
+        print evaluate(text, segs), segment(text, segs)
+    print
+    return segs
+
+格式化：从链表到字符串
+silly = ['We', 'called', 'him', 'Tortoise', 'because', 'he', 'taught', 'us', '.']
+' '.join(silly)
+取出 silly 中的所有项目，将它们连接成一个大的字符串，使用' '作为项目之间的间隔符，
+即 join()是一个你想要用来作为胶水的字符串的一个方法。join()方法只适用于一个字符串的链表—
+—我们一直把它叫做一个文本——在 Python 中享有某些特权的一个复杂的类型
+
+fdist = nltk.FreqDist(['dog', 'cat', 'dog', 'cat', 'dog', 'snake', 'dog', 'cat'])
+for word in fdist:
+    print word, '->', fdist[word], ';',
+for word in fdist:
+    print '%s->%d;' % (word, fdist[word]),
+
+布朗语料库的不同部分的频率模型
+def tabulate(cfdist, words, categories):
+    print '%-16s' % 'Category',
+    for word in words: # column headings
+        print '%6s' % word,
+    print
+    for category in categories:
+        print '%-16s' % category,                       # row heading
+        for word in words:                              # for each word
+            print '%6d' % cfdist[category][word],       # print table cell
+        print                                           # end the row
+cfd = nltk.ConditionalFreqDist((genre, word) for genre in brown.categories() for word in brown.words(categories=genre))
+genres = ['news', 'religion', 'hobbies', 'science_fiction', 'romance', 'humor']
+modals = ['can', 'could', 'may', 'might', 'must', 'will']
+tabulate(cfd, modals, genres)
+
+我们可以使用 width = max(len(w) for w in words)自动定制列的宽度，使其足
+够容纳所有的词。要记住 print 语句结尾处的逗号增加了一个额外的空格，这样能够防止列
+标题相互重叠

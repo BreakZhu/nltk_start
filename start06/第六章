@@ -1,0 +1,26 @@
+文本 学习分类文本
+有监督分类
+    性别鉴定
+def gender_features(word):
+    return {'last_letter': word[-1]}
+gender_features('Shrek')
+
+from nltk.corpus import names
+import random
+names = ([(name, 'male') for name in names.words('male.txt')] + [(name, 'female') for name in names.words('female.txt')])
+random.shuffle(names)
+选择正确的特征
+特征提取通过反复试验和错误的过程建立的，由哪些信息是与问题相关的直觉指引的。它通常以“厨房水槽”的方法开始，
+包括你能想到的所有特征，然后检查哪些特征是实际有用的
+例 6-1. 一个特征提取器，过拟合性别特征。这个特征提取器返回的特征集包括大量指定的特征，从而导致对于相对较小的名字语料库过拟合
+def gender_features2(name):
+    features = {}
+    features["firstletter"] = name[0].lower()
+    features["lastletter"] = name[–1].lower()
+    for letter in 'abcdefghijklmnopqrstuvwxyz':
+        features["count(%s)" % letter] = name.lower().count(letter)
+        features["has(%s)" % letter] = (letter in name.lower())
+    return features
+gender_features2('John')
+
+
