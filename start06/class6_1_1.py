@@ -15,7 +15,7 @@ def gender_features(word):
 
 
 def gender_features3(word):
-    return {'suffix1': word[-1:], 'suffix2': word[-2:], 'perfix_1'}
+    return {'suffix1': word[-1:], 'suffix2': word[-2:], 'perfix_1': word[:1], "perfix_2": word[:2]}
 
 
 # print gender_features('Shrek')  # 通过最后的字母确定性别
@@ -80,6 +80,7 @@ devtest_set = [(gender_features3(n), g) for (n, g) in devtest_names]  # 开发�
 test_set = [(gender_features3(n), g) for (n, g) in test_names]  # 测试
 classifier = nltk.NaiveBayesClassifier.train(train_set)
 print nltk.classify.accuracy(classifier, devtest_set)
+
 errors = []
 for (name, tag) in devtest_names:
     guess = classifier.classify(gender_features3(name))
@@ -87,3 +88,5 @@ for (name, tag) in devtest_names:
         errors.append((tag, guess, name))
 for (tag, guess, name) in sorted(errors):  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     print 'correct=%-8s guess=%-8s name=%-30s' % (tag, guess, name)
+
+
